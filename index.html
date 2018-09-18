@@ -12,7 +12,54 @@
 
 <script>
 function myFunction() {
-  document.getElementById("demo").innerHTML = "Hello World";
+ navigator.bluetooth.requestDevice({
+filters: [ {services:[0x2220]} ]
+})
+.then(device => {
+ this.device = device;
+return device.gatt.connect();
+})
+.then(server => {
+    console.log('Getting Device Information Service...');
+    return server.getPrimaryService(0x2220);
+  })
+  .then(service => {
+    console.log('Getting Device Information Characteristics...');
+    return service.getCharacteristics();
+  })
+  .then(charArray => {
+  console.log(charArray);
+  let writeChar, readChar;
+    for (let char of charArray) {
+     console.log(char.properties.write);
+     console.log(char.uuid);
+      if (char.properties.write === true && char.uuid.startsWith("00002222")) {
+        console.log(char);
+        writeChar = char;
+      }  
+      if (char.properties.read === true && char.uuid.startsWith("00002221")) {
+        console.log(char);
+        readChar = char;
+      }  
+    }  
+    console.log(writeChar);
+    let encoder = new TextEncoder('utf-8');
+    let sendMsg = encoder.encode("hello");
+    console.log(sendMsg);
+    writeChar.writeValue(sendMsg);
+  return readChar.startNotifications();
+  })
+  .then(characteristic => {
+  characteristic.addEventListener('characteristicvaluechanged',
+                                  handleCharacteristicValueChanged);
+  console.log('Notifications have been started.');
+})
+
+
+  function handleCharacteristicValueChanged(event) {
+  var value = event.target.value;
+  console.log('Received ' + value);
+}
 }
 </script>
 
