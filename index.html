@@ -11,6 +11,7 @@
 <p id="demo"></p>
 
 <script>
+  var myFunction() {
  let writeChar;
 navigator.bluetooth.requestDevice({
 filters: [ {services:[0x2220]} ]
@@ -57,6 +58,7 @@ return device.gatt.connect();
     let sendMsg = encoder.encode("hello2");
     writeChar.writeValue();
   })
+ }
 </script>
 
 </body>
