@@ -11,8 +11,8 @@
 <p id="demo"></p>
 
 <script>
-function myFunction() {
- navigator.bluetooth.requestDevice({
+ let writeChar;
+navigator.bluetooth.requestDevice({
 filters: [ {services:[0x2220]} ]
 })
 .then(device => {
@@ -28,39 +28,35 @@ return device.gatt.connect();
     return service.getCharacteristics();
   })
   .then(charArray => {
+  let readChar;
   console.log(charArray);
-  let writeChar, readChar;
     for (let char of charArray) {
      console.log(char.properties.write);
      console.log(char.uuid);
       if (char.properties.write === true && char.uuid.startsWith("00002222")) {
         console.log(char);
         writeChar = char;
-      }  
+      }
       if (char.properties.read === true && char.uuid.startsWith("00002221")) {
         console.log(char);
         readChar = char;
-      }  
-    }  
+      }
+    }
     console.log(writeChar);
     let encoder = new TextEncoder('utf-8');
     let sendMsg = encoder.encode("hello");
     console.log(sendMsg);
     writeChar.writeValue(sendMsg);
-  return readChar.startNotifications();
+    return readChar.readValue();
   })
-  .then(characteristic => {
-  characteristic.addEventListener('characteristicvaluechanged',
-                                  handleCharacteristicValueChanged);
-  console.log('Notifications have been started.');
-})
-
-
-  function handleCharacteristicValueChanged(event) {
-  var value = event.target.value;
-  console.log('Received ' + value);
-}
-}
+  .then(value => {
+    let decoder = new TextDecoder('utf-8');
+    let decodedMsg = decoder.decode(value.buffer);
+    console.log(decodedMsg);
+    let encoder = new TextEncoder('utf-8');
+    let sendMsg = encoder.encode("hello2");
+    writeChar.writeValue();
+  })
 </script>
 
 </body>
